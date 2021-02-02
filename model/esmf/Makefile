@@ -10,8 +10,8 @@ WW3_EXEDIR := $(WW3_DIR)/exe
 #WW3_CC := gcc
 #WW3_F90 := gfortran
 WW3_COMP ?= ndcrc
-WW3_CC := mpicc
-WW3_F90 := mpif90
+WW3_CC ?= mpicc
+WW3_F90 ?= mpif90
 SWITCHES := $(shell cat switch)
 
 WWATCH3_ENV := $(WW3_BINDIR)/wwatch3.env
@@ -48,7 +48,7 @@ else ifeq ("$(WW3_COMP)",$(filter "$(WW3_COMP)","mpt" "datarmor_mpt" "datarmor_m
 else ifeq ("$(WW3_COMP)",$(filter "$(WW3_COMP)","gnu" "datarmor_gnu" "datarmor_gnu_debug"))
  ESMF_F90COMPILEOPTS := $(ESMF_F90COMPILEOPTS) -fconvert=big-endian
 # nd crc system 
-else ifeq ("$(WW3_COMP)",$(filter "$(WW3_COMP)","ndcrc" "intel"))
+else ifeq ("$(WW3_COMP)",$(filter "$(WW3_COMP)","ndcrc" "intel" "stampede"))
  ESMF_F90COMPILEOPTS := $(ESMF_F90COMPILEOPTS) -convert big_endian
 #
 else
@@ -157,27 +157,36 @@ switch:
 # ------------------------------------------------------------------------------
 # Setup switch file and compile serial routines ww3_grid, ww3_outf and ww3_outp 
 # ------------------------------------------------------------------------------
-gout: 
+gout:
 	@echo "$(SWITCHES)" > $(WW3_BINDIR)/tempswitch
 	@sed -e "s/DIST/SHRD/g"\
 	     -e "s/MPIT/ /g"\
-             -e "s/MPI/ /g"\
-             -e "s/PDLIB/ /g"\
-                  $(WW3_BINDIR)/tempswitch > $(WW3_BINDIR)/switch
+	     -e "s/MPI/ /g"\
+	     -e "s/PDLIB/ /g"\
+	     -e "s/NC4/ /g"\
+			  $(WW3_BINDIR)/tempswitch > $(WW3_BINDIR)/switch
 	\rm -f $(WW3_BINDIR)/tempswitch
+	$(WW3_BINDIR)/w3_make ww3_bound
 	$(WW3_BINDIR)/w3_make ww3_grid
 	$(WW3_BINDIR)/w3_make ww3_outf
-	$(WW3_BINDIR)/w3_make ww3_outp
 	@echo "$(SWITCHES)" > $(WW3_BINDIR)/tempswitch
 	@sed -e "s/DIST/SHRD/g"\
-             -e "s/MPIT/ /g"\
-             -e "s/MPI/ /g"\
-             -e "s/PDLIB/ /g"\
-             -e "s/NOGRB/NCEP2 NCO/g"\
-                  $(WW3_BINDIR)/tempswitch > $(WW3_BINDIR)/switch
+	     -e "s/MPIT/ /g"\
+	     -e "s/MPI/ /g"\
+	     -e "s/PDLIB/ /g"\
+			  $(WW3_BINDIR)/tempswitch > $(WW3_BINDIR)/switch
 	\rm -f $(WW3_BINDIR)/tempswitch
 	$(WW3_BINDIR)/w3_make ww3_ounf
 	$(WW3_BINDIR)/w3_make ww3_prnc
+	@echo "$(SWITCHES)" > $(WW3_BINDIR)/tempswitch
+	@sed -e "s/DIST/SHRD/g"\
+	     -e "s/MPIT/ /g"\
+	     -e "s/MPI/ /g"\
+	     -e "s/PDLIB/ /g"\
+	     -e "s/NOGRB/NCEP2 NCO/g"\
+	     -e "s/NC4/ /g"\
+			  $(WW3_BINDIR)/tempswitch > $(WW3_BINDIR)/switch
+	\rm -f $(WW3_BINDIR)/tempswitch
 	$(WW3_BINDIR)/w3_make ww3_outp
 	$(WW3_BINDIR)/w3_make ww3_multi
 #	$(WW3_BINDIR)/w3_make ww3_grib
